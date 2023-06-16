@@ -1,1 +1,1 @@
-## Just my way to learn C/C++
+## Just my code to learn C/C++

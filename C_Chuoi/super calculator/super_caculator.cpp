@@ -35,10 +35,31 @@ phep nhan
 */
 
 /*
-phep chia
+phep chia, lấy phần nguyên
 8/3 = 2 du 2
 8 - 3*2 = 2
 */
+
+void remove_zero(char *str)
+{
+    int i = 0;
+    while (str[i] == '0')
+    {
+        bool check = true;
+        int len = strlen(str);
+        int j;
+        for (j = 0; j < len - 1; j++)
+        {
+            str[j] = str[j + 1];
+            check = false;
+        }
+        str[j] = '\0';
+        if (check == true)
+        {
+            i++;
+        }
+    }
+}
 
 void padding_array(char *str, char key, int position = 0)
 {
@@ -91,6 +112,7 @@ char *PhepCong(char *str1, char *str2)
     // add null terminator và đảo lại chuỗi để có kết quả
     ketqua[idx] = '\0';
     strrev(ketqua);
+    remove_zero(ketqua);
     return ketqua;
 }
 
@@ -149,171 +171,159 @@ char *PhepTru(char *str1, char *str2)
     }
     ketqua[idx] = '\0';
     strrev(ketqua);
+    remove_zero(ketqua);
     return ketqua;
 }
 
+// char *PhepNhan(char *str1, char *str2)
+// {
+//     // nhân các phần tử của str2 vào str1
+//     int str1_len = strlen(str1);
+//     int str2_len = strlen(str2);
+//     char *ketqua_temp = (char *)malloc(MAX);
+//     char *ketqua = (char *)malloc(MAX);
+//     ketqua_temp[0] = '0';
+//     ketqua_temp[1] = '\0';
+//     int idx_str2 = str2_len - 1;
+//     int chan = 0;
+//     while (idx_str2 >= 0)
+//     {
+//         int idx = 0;
+//         for (int i = str2_len - 1; i >= 0; i--)
+//         {
+//             int temp = (str1[i] - 48) * (str2[idx_str2] - 48);
+//             int le = temp % 10;
+//             ketqua[idx++] = le + chan + 48;
+//             chan = temp / 10;
+//         }
+//         ketqua[idx] = '\0';
+//         // dịch các digit của kết quả về bên phải
+//         for (int i = 0; i < str2_len - idx_str2 - 1; i++)
+//         {
+//             padding_array(ketqua, '0', 0);
+//         }
+//         // reverse các digit và add kết quả trước đó và hiện tại
+//         strrev(ketqua);
+//         ketqua = PhepCong(ketqua, ketqua_temp);
+//         memcpy(ketqua_temp, ketqua, sizeof(ketqua));
+//         idx_str2--;
+//     }
+//     return ketqua;
+// }
+
 char *PhepNhan(char *str1, char *str2)
 {
-    // nhân các phần tử của str2 vào str1
+    int len_str1 = strlen(str1);
+    int len_str2 = strlen(str2);
+    char ketqua[len_str2][MAX];
+    for (int k = 0; k < len_str2; k++)
+    {
+        int idx2 = 0;
+        int nho = 0;
+        for (int i = len_str1 - 1; i >= 0; i--)
+        {
+            int temp = (str1[i] - 48) * (str2[k] - 48) + nho;
+            ketqua[k][idx2++] = (temp % 10) + 48;
+            nho = temp / 10;
+        }
+        if (nho != 0)
+        {
+            ketqua[k][idx2++] = nho + 48;
+        }
+        ketqua[k][idx2] = '\0';
+        strrev(ketqua[k]);
+    }
+    for (int j = len_str2 - 1; j >= 0; j--)
+    {
+        for (int i = 1; i <= len_str2 - j - 1; i++)
+        {
+            padding_array(ketqua[j], '0', strlen(ketqua[j]));
+        }
+    }
+    char *ketquacuoi = (char *)malloc(MAX);
+    ketquacuoi = ketqua[len_str2 - 1];
+    for (int i = len_str2 - 2; i >= 0; i--)
+    {
+        char *temp = ketquacuoi;
+        ketquacuoi = PhepCong(ketquacuoi, ketqua[i]);
+        free(temp);
+    }
+    remove_zero(ketquacuoi);
+    return ketquacuoi;
+}
+
+char *PhepChia(char *str1, char *str2)
+{
+    remove_zero(str1);
+    remove_zero(str2);
     int str1_len = strlen(str1);
     int str2_len = strlen(str2);
-    char *ketqua_temp = (char *)malloc(MAX);
+    char sochia[MAX];
+    char *sobichia;
     char *ketqua = (char *)malloc(MAX);
-    ketqua_temp[0] = '0';
-    ketqua_temp[1] = '\0';
-    int idx_str2 = str2_len - 1;
-    int chan = 0;
-    while (idx_str2 >= 0)
+    int idx = 0;
+    int idx_ketqua = 0;
+    // tìm nhóm chữ số chia lớn hơn số bị chia
+    for (int i = 0; i < str1_len; i++)
     {
-        int idx = 0;
-        for (int i = str2_len - 1; i >= 0; i--)
+        // lặp lại đến khi chạm null terminator thì kết thúc
+        bool check = false;
+        char heso[] = "1";
+        sochia[idx++] = str1[i];
+        sochia[idx] = '\0';
+        if (atoi(sochia) > atoi(str2))
         {
-            int temp = (str1[i] - 48) * (str2[idx_str2] - 48);
-            int le = temp % 10;
-            ketqua[idx++] = le + chan + 48;
-            chan = temp / 10;
+            // tìm hệ số có thể nhân với số bị chia và nhỏ hơn số chia
+            while (true)
+            {
+                check = true;
+                char *temp = sobichia;
+                sobichia = PhepNhan(heso, str2);
+                free(temp);
+                if (atoi(sobichia) > atoi(sochia))
+                {
+                    char *temp = sobichia;
+                    sobichia = PhepTru(sobichia, str2);
+                    free(temp);
+                    heso[0] -= 1;
+                    break;
+                }
+                else if (atoi(sobichia) == atoi(sochia))
+                {
+                    break;
+                }
+                heso[0] += 1;
+            }
+            // tìm số bị dư, trừ số chia với số bị chia
+            if (check == true)
+            {
+                char *temp = PhepTru(sochia, sobichia);
+                strcpy(sochia, temp);
+                free(temp);
+                ketqua[idx_ketqua++] = heso[0];
+                ketqua[idx_ketqua] = '\0';
+                idx = strlen(sochia);
+            }
         }
-        ketqua[idx] = '\0';
-        // dịch các digit của kết quả về bên phải
-        for (int i = 0; i < str2_len - idx_str2 - 1; i++)
-        {
-            padding_array(ketqua, '0', 0);
-        }
-        // reverse các digit và add kết quả trước đó và hiện tại
-        strrev(ketqua);
-        ketqua = PhepCong(ketqua, ketqua_temp);
-        memcpy(ketqua_temp, ketqua, sizeof(ketqua));
-        idx_str2--;
     }
     return ketqua;
 }
 
-// char *phepnhan(char *str1, char *str2)
-// {
-//     int len_str1 = strlen(str1);
-//     int len_str2 = strlen(str2);
-//     char ketqua[len_str2][MAX];
-//     for (int k = 0; k < len_str2; k++)
-//     {
-//         int idx2 = 0;
-//         int nho = 0;
-//         for (int i = len_str1 - 1; i >= 0; i--)
-//         {
-//             int temp = (str1[i] - 48) * (str2[k] - 48) + nho;
-//             ketqua[k][idx2++] = (temp % 10) + 48;
-//             nho = temp / 10;
-//         }
-//         if (nho != 0)
-//         {
-//             ketqua[k][idx2++] = nho + 48;
-//         }
-//         ketqua[k][idx2] = '\0';
-//         strrev(ketqua[k]);
-//     }
-//     for (int j = len_str2 - 1; j >= 0; j--)
-//     {
-//         for (int i = 1; i <= len_str2 - j - 1; i++)
-//         {
-//             padding_array(ketqua[j], '0', strlen(ketqua[j]));
-//         }
-//     }
-//     char *ketquacuoi = (char *)malloc(MAX);
-//     ketquacuoi = ketqua[len_str2 - 1];
-//     for (int i = len_str2 - 2; i >= 0; i--)
-//     {
-//         ketquacuoi = PhepCong(ketquacuoi, ketqua[i]);
-//     }
-//     printf("\nKet qua phep nhan: %s", ketquacuoi);
-//     return ketquacuoi;
-// }
-// void catchuoi(char *str, char *buffer, int start, int end)
-// {
-//     int idx = 0;
-//     for (int i = start; i < end; i++)
-//     {
-//         buffer[idx++] = str[i];
-//     }
-//     buffer[idx] = '\0';
-//     printf("\nSo duoc thay doi: %s", buffer);
-// }
-// void timthuong(char *str1, char *str2)
-// {
-//     int len = strlen(str2);
-//     char sochia[MAX];
-//     char bichia[MAX];
-//     catchuoi(str1, sochia, 0, len);
-//     strcpy(bichia, str2);
-//     char dem[MAX] = "0";
-//     while (atoi(sochia) > atoi(bichia))
-//     {
-//         strcpy(dem, PhepCong(dem, (char *)"1"));
-//         strcpy(bichia, phepnhan(str2, dem));
-//     }
-//     if (atoi(sochia) < atoi(bichia))
-//     {
-//         strcpy(dem, PhepTru(dem, (char *)"1"));
-//         strcpy(bichia, phepnhan(str2, dem));
-//     }
-
-//     printf("\nDEM %s", dem);
-//     printf("\nsochia %s", sochia);
-//     printf("\nbichia %s", bichia);
-//     printf("\ntru %s", strcpy(sochia, PhepTru(sochia, bichia)));
-// }
-// void phepchia(char *str1, char *str2)
-// {
-//     int len_str1 = strlen(str1);
-//     int len_str2 = strlen(str2);
-//     char str1_temp[MAX];
-//     char str2_temp[MAX];
-//     int i;
-//     int start = 0;
-//     int end = len_str2;
-//     catchuoi(str1, str1_temp, start, end);
-//     strcpy(str2_temp, str2);
-//     char ketqua[MAX];
-//     int idx = 0;
-//     while (str1[end] != '\0')
-//     {
-//         int check = 0;
-//         int dem = 0;
-//         char *temp = (char *)malloc(MAX);
-//         temp = str2_temp;
-//         while (str1_temp < temp)
-//         {
-//             dem++;
-//             check = 1;
-//             temp = PhepCong(temp, str2);
-//             printf("\nSo duoc thay doi: %d", temp);
-//         }
-//         if (check == 1)
-//         {
-//             ketqua[idx] = dem + 48;
-//             start++;
-//             idx++;
-//         }
-//         free(temp);
-//         end++;
-//         catchuoi(str1, str1_temp, start, end);
-//     }
-// }
-
 int main()
 {
-    char str1[MAX] = "123";
-    char str2[MAX] = "123";
-    char *ketqua = PhepTru(str1, str2);
+    char str1[MAX] = "123456789123123";
+    char str2[MAX] = "25533";
+    char *ketqua = PhepCong(str1, str2);
+    printf("\n%s + %s =  %s", str1, str2, ketqua);
+    free(ketqua);
+    ketqua = PhepTru(str1, str2);
     printf("\n%s - %s =  %s", str1, str2, ketqua);
     free(ketqua);
     ketqua = PhepNhan(str1, str2);
     printf("\n%s * %s =  %s", str1, str2, ketqua);
     free(ketqua);
-    // phepchia(str1, str2);
-    // timthuong(str1, str2);
-    // printf("\nSo duoc thay doi: %s", str1);
-    // catchuoi(str1, str2, 0, 5);
-    // printf("\nSo duoc thay doi: %p", str2);
-
-    // phepnhan(str1, str2);
+    ketqua = PhepChia(str1, str2);
+    printf("\n%s / %s =  %s", str1, str2, ketqua);
+    free(ketqua);
     return 0;
 }

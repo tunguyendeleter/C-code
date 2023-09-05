@@ -56,6 +56,62 @@ bool CheckZero(string str)
     return true;
 }
 
+void ChuanHoaInput(string &str1, string &str2)
+{
+    int str1_len = str1.size();
+    int str2_len = str2.size();
+    int cnt1 = 0;
+    int cnt2 = 0;
+    for (int i = 0; i < str1_len; i++)
+    {
+        if (str1[i] == '.')
+        {
+            cnt1 = str1_len - i;
+        }
+    }
+    for (int i = 0; i < str2_len; i++)
+    {
+        if (str2[i] == '.')
+        {
+            cnt2 = str2_len - i;
+        }
+    }
+    int min_cnt = cnt1 < cnt2 ? cnt1 : cnt2;
+    int max_cnt = cnt1 > cnt2 ? cnt1 : cnt2;
+    if (min_cnt == cnt1)
+    {
+        for (int i = min_cnt; i < max_cnt; i++)
+        {
+            str1 += "0";
+        }
+    }
+    else
+    {
+
+        for (int i = min_cnt; i < max_cnt; i++)
+        {
+            str2 += "0";
+        }
+    }
+
+    int min = (str1_len - cnt1) < (str2_len - cnt2) ? (str1_len - cnt1 - 1) : (str2_len - cnt2 - 1);
+    int max = (str1_len - cnt1) > (str2_len - cnt2) ? (str1_len - cnt1 - 1) : (str2_len - cnt2 - 1);
+    if (min == str1_len)
+    {
+        for (int i = min; i < max; i++)
+        {
+            str1 = "0" + str1;
+        }
+    }
+    else
+    {
+        for (int i = min; i < max; i++)
+        {
+            str2 = "0" + str2;
+        }
+    }
+}
+
 void CanBangHaiVe(string &str1, string &str2)
 {
     int str1_len = str1.size();
@@ -181,11 +237,56 @@ string PhepTru(string str1, string str2)
         temp_str2 = str1;
         check = true;
     }
-    // cout << "\ncheck = " << check;
     int remember = 0;
     string ketqua = "";
     for (int i = max - 1; i >= 0; i--)
     {
+        int temp = (temp_str1[i] - 48) - (temp_str2[i] - 48) - remember;
+        if (temp < 0)
+        {
+            ketqua += (10 + temp + 48);
+            remember = 1;
+        }
+        else
+        {
+            ketqua += (temp + 48);
+            remember = 0;
+        }
+    }
+    ReverseString(ketqua);
+    if (check == true)
+    {
+        ketqua = "-" + ketqua;
+    }
+    return ketqua;
+}
+
+string PhepTruThapPhan(string str1, string str2)
+{
+    string temp_str1 = str1;
+    string temp_str2 = str2;
+    ChuanHoaInput(temp_str1, temp_str2);
+    int str1_len = temp_str1.size();
+    int str2_len = temp_str2.size();
+    int max = str1_len > str2_len ? str1_len : str2_len;
+    
+    bool check = false;
+    if (str1.compare(str2) < 0)
+    {
+        string temp = temp_str1;
+        temp_str1 = temp_str2;
+        temp_str2 = temp;
+        check = true;
+    }
+    int remember = 0;
+    string ketqua = "";
+    for (int i = max - 1; i >= 0; i--)
+    {
+        if (temp_str1[i] == '.')
+        {
+            ketqua += ".";
+            continue;
+        }
         int temp = (temp_str1[i] - 48) - (temp_str2[i] - 48) - remember;
         if (temp < 0)
         {
@@ -240,6 +341,31 @@ string PhepCong(string str1, string str2)
     for (int i = max - 1; i >= 0; i--)
     {
         int temp = (str1[i] - 48) + (str2[i] - 48) + remember;
+        ketqua += (temp % 10 + 48);
+        remember = temp / 10;
+    }
+    ReverseString(ketqua);
+    return ketqua;
+}
+string PhepCongThapPhan(string str1, string str2)
+{
+    string str1_temp = str1;
+    string str2_temp = str2;
+    ChuanHoaInput(str1_temp, str2_temp);
+    int str1_len = str1_temp.size();
+    int str2_len = str2_temp.size();
+    int max = str1_len > str2_len ? str1_len : str2_len;
+
+    int remember = 0;
+    string ketqua = "";
+    for (int i = max - 1; i >= 0; i--)
+    {
+        if (str1_temp[i] == '.')
+        {
+            ketqua += ".";
+            continue;
+        }
+        int temp = (str1_temp[i] - 48) + (str2_temp[i] - 48) + remember;
         ketqua += (temp % 10 + 48);
         remember = temp / 10;
     }
@@ -443,14 +569,17 @@ void XuLyCongTru(vector<string> &a)
 
 int main()
 {
-    string str = "1 + 2 * 333 - 420 / 5";
-    vector<string> a;
-    AddVector(str, a);
-    XuLyNhanChia(a);
-    XuLyCongTru(a);
-    for (int i = 0; i < a.size(); i++)
-    {
-        cout << a[i];
-    }
+    // string str = "1 + 2 * 333 - 420 / 5";
+    // vector<string> a;
+    // AddVector(str, a);
+    // XuLyNhanChia(a);
+    // XuLyCongTru(a);
+    // for (int i = 0; i < a.size(); i++)
+    // {
+    //     cout << a[i];
+    // }
+    string str1 = "1231234.523";
+    string str2 = "123.56123";
+    cout << PhepTruThapPhan(str1, str2);
     return 0;
 }

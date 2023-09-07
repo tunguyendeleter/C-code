@@ -1,8 +1,7 @@
 #include <stdio.h>
-#include <math.h>
 
 /*
-S(n) = 
+S(n) = 1/(1+1/(1+1/(1+1)))
     1
 -------
 1 + 1
@@ -13,35 +12,35 @@ S(n) =
          -----
       ....  1
            -----
-           1 + 1 
+           1 + 1
              -----
              1 + 1
-có n phân số: sqrt()
+có n phân số:
 */
 
 double TinhDeQuy(int n)
 {
     if (n == 1)
     {
-        return 1;
+        return 1.0 / 2;
     }
-    double pre = TinhDeQuy(n, x + 1);
-    return sqrt(x + pre);
+    double pre = 1 + TinhDeQuy(n - 1); // pre = 1 + Tinhdequy(n - 1)
+    return 1.0 / pre;                  // 1/(pre)
 }
 
 double HuyDeQuy(int n)
 {
-    double ketqua = n;
+    double ketqua = 1.0 / 2;
     for (int i = n; i > 1; i--)
     {
-        ketqua = i - 1 + sqrt(ketqua);
+        ketqua = 1.0 / (1 + ketqua);
     }
-    return sqrt(ketqua);
+    return ketqua;
 }
 
 int main()
 {
-    printf("\nDe quy S(n) = %f", TinhDeQuy(5));
-    printf("\nHuy de quy S(n) = %f", HuyDeQuy(5));
+    printf("\nDe quy S(n) = %lf", TinhDeQuy(13));
+    printf("\nHuy de quy S(n) = %f", HuyDeQuy(13));
     return 0;
 }

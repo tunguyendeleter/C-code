@@ -47,6 +47,9 @@ void NhapDuLieuNode(NODE *&node, char *str)
     node = GetNode(data);
 }
 
+/*
+nhập data cho cây nhị phân sử dụng queue
+*/
 void TaoCay(NODE *&Root)
 {
     // nhập node gốc
@@ -108,28 +111,196 @@ void TaoCay(NODE *&Root)
     }
 }
 
+// Bước 5: những xử lý cần có trên cây
+/*
+duyệt theo chiều rộng, thutu = 1: trái -> phải, else: phải -> trái
+*/
+void DuyetTheoChieuRong(NODE *Root, int thutu = 1)
+{
+    if (Root == NULL)
+    {
+        return;
+    }
+    queue<NODE *> q;
+    q.push(Root);
+    while (!q.empty()) // lặp lại liên tục khi hàng đợi còn phần tử
+    {
+        NODE *temp = q.front();
+        q.pop();
+        if (thutu == 1)
+        {
+            if (temp->Left != NULL)
+            {
+                q.push(temp->Left);
+            }
+            if (temp->Right != NULL)
+            {
+                q.push(temp->Right);
+            }
+        }
+        else
+        {
+            if (temp->Right != NULL)
+            {
+                q.push(temp->Right);
+            }
+            if (temp->Left != NULL)
+            {
+                q.push(temp->Left);
+            }
+        }
+        printf("%4c", temp->Data);
+    }
+}
+/*
+duyệt Preorder, thứ tự = 1: (node left right), khác 1: (node right left)
+*/
+void PreOrder(NODE *Root, int thutu = 1)
+{
+    if (thutu == 1)
+    {
+        if (Root != NULL)
+        {
+            printf("%4c", Root->Data);
+            PreOrder(Root->Left, thutu);
+            PreOrder(Root->Right, thutu);
+        }
+    }
+    else
+    {
+        if (Root != NULL)
+        {
+            printf("%4c", Root->Data);
+            PreOrder(Root->Right, thutu);
+            PreOrder(Root->Left, thutu);
+        }
+    }
+}
+/*
+duyệt InOrder, thứ tự = 1: (left node right), khác 1: (right node left)
+*/
+void InOrder(NODE *Root, int thutu = 1)
+{
+    if (thutu == 1)
+    {
+        if (Root != NULL)
+        {
+            InOrder(Root->Left, thutu);
+            printf("%4c", Root->Data);
+            InOrder(Root->Right, thutu);
+        }
+    }
+    else
+    {
+        if (Root != NULL)
+        {
+            InOrder(Root->Right, thutu);
+            printf("%4c", Root->Data);
+            InOrder(Root->Left, thutu);
+        }
+    }
+}
+/*
+duyệt PostOrder, thứ tự = 1: (left right node), khác 1: (right left node)
+*/
+void PostOrder(NODE *Root, int thutu = 1)
+{
+    if (thutu == 1)
+    {
+        if (Root != NULL)
+        {
+            PostOrder(Root->Left, thutu);
+            PostOrder(Root->Right, thutu);
+            printf("%4c", Root->Data);
+        }
+    }
+    else
+    {
+        if (Root != NULL)
+        {
+            PostOrder(Root->Right, thutu);
+            PostOrder(Root->Left, thutu);
+            printf("%4c", Root->Data);
+        }
+    }
+}
+/*
+đếm tổng các node trên cây
+*/
+void DemTongCacNodeTrenCay(NODE *Root, int &dem)
+{
+    if (Root != NULL)
+    {
+        dem++;
+        DemTongCacNodeTrenCay(Root->Left, dem);
+        DemTongCacNodeTrenCay(Root->Right, dem);
+    }
+}
+
+// Bước 6: giải phong cây
+void RemoveAll(NODE *&Root)
+{
+    if (Root != NULL)
+    {
+        RemoveAll(Root->Left);
+        RemoveAll(Root->Right);
+        free(Root);
+        Root = NULL;
+    }
+}
+
 int main()
 {
 
     // Bước 4: nhập dữ liệu vào cây
-    NODE *Root;
-    TaoCay(Root);
+    NODE *Root = GetNode('A');
+    NODE *B = GetNode('B');
+    NODE *C = GetNode('C');
+    NODE *D = GetNode('D');
+    NODE *E = GetNode('E');
+    NODE *F = GetNode('F');
+    NODE *G = GetNode('G');
+    NODE *H = GetNode('H');
+    NODE *I = GetNode('I');
+    NODE *J = GetNode('J');
+    NODE *K = GetNode('K');
+    NODE *L = GetNode('L');
+    Root->Left = B;
+    Root->Right = C;
+    B->Left = D;
+    B->Right = E;
+    C->Left = F;
+    C->Right = G;
+    D->Left = H;
+    D->Right = I;
+    E->Right = J;
+    F->Left = K;
+    G->Right = L;
+
+    // TaoCay(Root);
     /*===========================*/
-    printf("\n%c", Root->Data);
-    printf("\n%c", Root->Left->Data);
-    printf("\n%c", Root->Right->Data);
-    printf("\n%c", Root->Left->Left->Data);
-    printf("\n%c", Root->Left->Right->Data);
-    printf("\n%c", Root->Right->Left->Data);
-    printf("\n%c", Root->Right->Right->Data);
+    printf("\nDuyet theo chieu rong: \n");
+    DuyetTheoChieuRong(Root);
+    printf("\nDuyet truoc: \n");
+    PreOrder(Root);
+    printf("\nDuyet giua: \n");
+    InOrder(Root);
+    printf("\nDuyet sau: \n");
+    PostOrder(Root);
+    int dem = 0;
+    DemTongCacNodeTrenCay(Root, dem);
+    printf("\nTong cac node tren cay: %d", dem);
+    RemoveAll(Root);
 
-    printf("\n%c", Root->Left->Left->Left->Data);
-    printf("\n%c", Root->Left->Left->Right->Data);
+    printf("\nDuyet theo chieu rong: \n");
+    DuyetTheoChieuRong(Root);
+    printf("\nDuyet truoc: \n");
+    PreOrder(Root);
+    printf("\nDuyet giua: \n");
+    InOrder(Root);
+    printf("\nDuyet sau: \n");
+    PostOrder(Root);
 
-    printf("\n%c", Root->Left->Right->Right->Data);
-
-    printf("\n%c", Root->Right->Left->Left->Data);
-    printf("\n%c", Root->Right->Right->Right->Data);
 
     return 0;
 }

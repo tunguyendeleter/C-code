@@ -11,12 +11,14 @@ Bước 6: giải phong cây
 #include <conio.h>
 #include <stdlib.h>
 #include <queue>
+#include <time.h>
+#include <math.h>
 using namespace std;
 
 // Bước 1: khai báo cấu trúc dữ liệu cây
 struct Node
 {
-    char Data;
+    int Data;
     struct Node *Left, *Right;
 };
 typedef struct Node NODE;
@@ -236,6 +238,66 @@ int DemSoLuongCacNodeTrenCay_DeQuy(NODE *Root)
     return 1 + DemSoLuongCacNodeTrenCay_DeQuy(Root->Left) + DemSoLuongCacNodeTrenCay_DeQuy(Root->Right);
 }
 
+void DemSoLuongCacNodeTrenCay_DeQuyDuoi(NODE *Root, int &dem) // hàm ko chạy 2 lần như stack
+{
+    if (Root != NULL)
+    {
+        dem++;
+        DemSoLuongCacNodeTrenCay_DeQuyDuoi(Root->Left, dem);
+        DemSoLuongCacNodeTrenCay_DeQuyDuoi(Root->Right, dem);
+    }
+}
+
+int DemSoLuongCacNodeTrenCay_HuyDeQuy(NODE *Root)   
+{
+    if (Root == NULL)
+    {
+        return 0;
+    }
+    queue<NODE *> q;
+    q.push(Root);
+    int dem = 0;
+    while (!q.empty()) // lặp lại liên tục khi hàng đợi còn phần tử
+    {
+        dem++;
+        NODE *temp = q.front();
+        q.pop();
+        if (temp->Left != NULL)
+        {
+            q.push(temp->Left);
+        }
+        if (temp->Right != NULL)
+        {
+            q.push(temp->Right);
+        }
+    }
+    return dem;
+}
+
+/*
+tạo cây đầy đủ được đánh số có mức k = n
+*/
+void TaoCayNhiPhanDayDu(NODE *&root, int k)
+{
+    int len = pow(2.0, k) - 1;
+    queue<NODE *> q;
+    q.push(root);
+    while (true)
+    {
+        NODE *temp = q.front();
+        q.pop();
+        int data = temp->Data - 48;
+        if (data * 2 > len)
+        {
+            break;
+        }
+        temp->Left = GetNode(data * 2 + 48);
+        temp->Right = GetNode(data * 2 + 49);
+        q.push(temp->Left);
+        q.push(temp->Right);
+    }
+}
+
 // Bước 6: giải phong cây
 void RemoveAll(NODE *&Root)
 {
@@ -288,18 +350,37 @@ int main()
     InOrder(Root);
     printf("\nDuyet sau: \n");
     PostOrder(Root);
-    printf("\nTong cac node tren cay: %d", DemSoLuongCacNodeTrenCay_DeQuy(Root));
+    printf("\nTong cac node tren cay: %d", DemSoLuongCacNodeTrenCay_HuyDeQuy(Root));
     RemoveAll(Root);
 
-    // printf("\nDuyet theo chieu rong: \n");
-    // DuyetTheoChieuRong(Root);
-    // printf("\nDuyet truoc: \n");
-    // PreOrder(Root);
-    // printf("\nDuyet giua: \n");
-    // InOrder(Root);
-    // printf("\nDuyet sau: \n");
-    // PostOrder(Root);
+    // tạo cây nhị phân đầy đủ
+    NODE *root = GetNode('1');
+    int k = 7;
+    TaoCayNhiPhanDayDu(root, k);
+    clock_t start2 = clock();
+    for (int i = 0; i < 1000000000; i++)
+    {
+        DemSoLuongCacNodeTrenCay_DeQuy(Root);
+    }
+    clock_t end2 = clock();
+    printf("\nDemSoLuongCacNodeTrenCay_DeQuy chay mat %lf giay", (double)(end2 - start2) / CLOCKS_PER_SEC);
 
+    clock_t start1 = clock();
+    int dem = 0;
+    for (int i = 0; i < 1000000000; i++)
+    {
+        DemSoLuongCacNodeTrenCay_DeQuyDuoi(Root, dem);
+    }
+    clock_t end1 = clock();
+    printf("\nDemSoLuongCacNodeTrenCay_DeQuyDuoi chay mat %lf giay", (double)(end1 - start1) / CLOCKS_PER_SEC);
+
+    clock_t start3 = clock();
+    for (int i = 0; i < 1000000000; i++)
+    {
+        DemSoLuongCacNodeTrenCay_HuyDeQuy(Root);
+    }
+    clock_t end3 = clock();
+    printf("\nDemSoLuongCacNodeTrenCay_HuyDeQuy chay mat %lf giay", (double)(end3 - start3) / CLOCKS_PER_SEC);
 
     return 0;
 }

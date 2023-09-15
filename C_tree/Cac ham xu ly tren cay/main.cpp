@@ -13,6 +13,7 @@ Bước 6: giải phong cây
 #include <queue>
 #include <time.h>
 #include <math.h>
+#include <string.h>
 using namespace std;
 
 // Bước 1: khai báo cấu trúc dữ liệu cây
@@ -248,7 +249,7 @@ void DemSoLuongCacNodeTrenCay_DeQuyDuoi(NODE *Root, int &dem) // hàm ko chạy 
     }
 }
 
-int DemSoLuongCacNodeTrenCay_HuyDeQuy(NODE *Root)   
+int DemSoLuongCacNodeTrenCay_HuyDeQuy(NODE *Root)
 {
     if (Root == NULL)
     {
@@ -272,6 +273,223 @@ int DemSoLuongCacNodeTrenCay_HuyDeQuy(NODE *Root)
         }
     }
     return dem;
+}
+
+/*
+tính bậc của một node, kiểm tra các node con có tồn tại hay không
+*/
+int TinhBacCuaNode(NODE *node)
+{
+    int dem = 0;
+    if (node->Left != NULL)
+    {
+        dem++;
+    }
+    if (node->Right != NULL)
+    {
+        dem++;
+    }
+    return dem;
+}
+/*
+tính bậc của một cây, bậc của một cây là bậc cao nhất của các node trong cây
+*/
+void TinhBacCuaCay(NODE *root, int &max)
+{
+    if (root != NULL)
+    {
+        int bac = TinhBacCuaNode(root);
+        if (max < bac)
+        {
+            max = bac;
+            if (max == 2)
+            {
+                return;
+            }
+        }
+        TinhBacCuaCay(root->Left, max);
+        TinhBacCuaCay(root->Right, max);
+    }
+}
+
+/*
+tính chiều cao của cây
+*/
+int TinhChieuCao(NODE *root)
+{
+    if (root == NULL)
+    {
+        return 0;
+    }
+    int left = TinhChieuCao(root->Left);
+    int right = TinhChieuCao(root->Right);
+    return left > right ? (left + 1) : (right + 1);
+}
+
+void TinhChieuCao_DeQuyDuoi(NODE *root, int &max, int level = 1)
+{
+    if (root != NULL)
+    {
+        if (max < level)
+        {
+            max = level;
+        }
+        TinhChieuCao_DeQuyDuoi(root->Left, max, level + 1);
+        TinhChieuCao_DeQuyDuoi(root->Right, max, level + 1);
+    }
+}
+/*
+tìm xem node có tồn tại hay không, nếu có trả về độ sâu của node(mức của node đang đứng)
+*/
+void KiemTraNodeCoTonTai(NODE *root, int data, bool &check, int &dosau, int level)
+{
+    if (root != NULL && check == false) // thêm điều kiện dê ngưng toàn bộ quá trình đệ quy
+    {
+        // printf("%c ", root->Data);
+        if (root->Data == data)
+        {
+            check = true;
+            dosau = level;
+            return; // tiết kiệm 2 lần chạy đệ quy bên dưới
+        }
+        level++;
+        KiemTraNodeCoTonTai(root->Left, data, check, dosau, level);
+        KiemTraNodeCoTonTai(root->Right, data, check, dosau, level);
+    }
+}
+
+/*
+viết hàm xuất tất cả các node trên tầng thứ k của cây
+*/
+void XuatTatCaCacNodeTangThuK(NODE *root, int k, int &dem, int level = 1)
+{
+    if (root != NULL && level <= k)
+    {
+        if (level == k)
+        {
+            printf("%c ", root->Data);
+            dem++;
+        }
+        XuatTatCaCacNodeTangThuK(root->Left, k, dem, level + 1);
+        XuatTatCaCacNodeTangThuK(root->Right, k, dem, level + 1);
+    }
+}
+void XuatTatCaCacNodeTangThuK_HuyDeQuy_SuDungQueue(NODE *root, int k, int &dem)
+{
+    if (root == NULL)
+    {
+        return;
+    }
+    int docao = 1;
+    queue<NODE *> q;
+    queue<int> chieucao_q;
+    q.push(root);
+    chieucao_q.push(1);
+    while (!q.empty())
+    {
+        NODE *temp = q.front();
+        q.pop();
+        docao = chieucao_q.front();
+        chieucao_q.pop();
+        if (docao == k)
+        {
+            printf("%c ", temp->Data);
+            dem++;
+        }
+
+        if (temp->Left != NULL)
+        {
+            q.push(temp->Left);
+            chieucao_q.push(docao + 1);
+        }
+        if (temp->Right != NULL)
+        {
+            q.push(temp->Right);
+            chieucao_q.push(docao + 1);
+        }
+    }
+}
+void XuatTatCaCacNodeMoiTang(NODE *root)
+{
+    int sobac = TinhChieuCao(root);
+    for (int i = 1; i <= sobac; i++)
+    {
+        int dem = 0;
+        printf("\nTang %d:", i);
+        XuatTatCaCacNodeTangThuK(root, i, dem);
+        printf("=> count = %d", dem);
+    }
+}
+void XuatTatCaCacNodeMoiTang_SuDungQueue(NODE *root)
+{
+    int sobac = 0;
+    TinhChieuCao_DeQuyDuoi(root, sobac);
+    for (int i = 1; i <= sobac; i++)
+    {
+        int dem = 0;
+        printf("\nTang %d:", i);
+        XuatTatCaCacNodeTangThuK_HuyDeQuy_SuDungQueue(root, i, dem);
+        printf("=> count = %d", dem);
+    }
+}
+void XuatTatCaCacNodeTheoDieuKien(NODE *root, char *str, int k, int level = 1)
+{
+    if (root != NULL)
+    {
+        bool check = false;
+        if (!strcmp(str, "<")) // strcmp(str, "<") == 0
+            check = (level < k);
+        else if (!strcmp(str, "<="))
+            check = (level <= k);
+        else if (!strcmp(str, "=="))
+            check = (level == k);
+        else if (!strcmp(str, ">"))
+            check = (level > k);
+        else if (!strcmp(str, ">="))
+            check = (level >= k);
+
+        if (check)
+        {
+            printf("%c ", root->Data);
+        }
+        XuatTatCaCacNodeTheoDieuKien(root->Left, str, k, level + 1);
+        XuatTatCaCacNodeTheoDieuKien(root->Right, str, k, level + 1);
+    }
+}
+/*
+viết hàm xuất tất cả các node trên cây theo thứ tự từ tầng 1 đến tầng k của cây(k là chiều cao của cây)
+*/
+void XuatTatCaCacNodeTuTang1DenK(NODE *root, int k, int &dem, int level = 1)
+{
+    if (root != NULL && level <= k)
+    {
+        if (level <= k)
+        {
+            printf("%c ", root->Data);
+            dem++;
+        }
+
+        XuatTatCaCacNodeTuTang1DenK(root->Left, k, dem, level + 1);
+        XuatTatCaCacNodeTuTang1DenK(root->Right, k, dem, level + 1);
+    }
+}
+
+/*
+viết hàm xuất tất cả các node trên cây theo thứ tự từ tầng 1 đến tầng k của cây(k là chiều cao của cây)
+*/
+void XuatTatCaCacNodeDuoiTangK(NODE *root, int k, int &dem, int level = 1)
+{
+    if (root != NULL)
+    {
+        if (level > k)
+        {
+            printf("%c ", root->Data);
+            dem++;
+        }
+
+        XuatTatCaCacNodeDuoiTangK(root->Left, k, dem, level + 1);
+        XuatTatCaCacNodeDuoiTangK(root->Right, k, dem, level + 1);
+    }
 }
 
 /*
@@ -351,36 +569,69 @@ int main()
     printf("\nDuyet sau: \n");
     PostOrder(Root);
     printf("\nTong cac node tren cay: %d", DemSoLuongCacNodeTrenCay_HuyDeQuy(Root));
-    RemoveAll(Root);
+    printf("\nBac cua node %c: %d", B->Data, TinhBacCuaNode(B));
+    int max = 0;
+    TinhBacCuaCay(Root, max);
+    printf("\nBac cua cay: %d", max);
+    int chieucao = 0;
+    TinhChieuCao_DeQuyDuoi(Root, chieucao);
+    printf("\nChieu cao cua cay %c: %d", Root->Data, chieucao);
+    bool check = false;
+    int dosau = 1;
+    KiemTraNodeCoTonTai(Root, 'D', check, dosau, 1);
+    if (check)
+    {
+        printf("\nNode co ton tai");
+        printf("\nDo sau cua node la: %d", dosau);
+    }
+    else
+    {
+        printf("\nNode khong ton tai");
+    }
 
+    // XuatTatCaCacNodeMoiTang(Root);
+    XuatTatCaCacNodeMoiTang_SuDungQueue(Root);
+    char *str = "<";
+    printf("\nCac node voi dieu kien \"%s\": ", str);
+    XuatTatCaCacNodeTheoDieuKien(Root, str, 3);
+    // int k = 3;
+    // int dem2 = 0;
+    // printf("\nCac node tu tang 1 den tang %d\n", k);
+    // XuatTatCaCacNodeTuTang1DenK(Root, k, dem2);
+    // printf("\nSo luong cac node tu tang 1 den k: %d", dem2);
+    // int dem3 = 0;
+    // printf("\nCac node tu tang %d xuong duoi\n", k);
+    // XuatTatCaCacNodeDuoiTangK(Root, k, dem3);
+    // printf("\nSo luong cac node duoi tang k: %d", dem3);
     // tạo cây nhị phân đầy đủ
-    NODE *root = GetNode('1');
-    int k = 7;
-    TaoCayNhiPhanDayDu(root, k);
-    clock_t start2 = clock();
-    for (int i = 0; i < 1000000000; i++)
-    {
-        DemSoLuongCacNodeTrenCay_DeQuy(Root);
-    }
-    clock_t end2 = clock();
-    printf("\nDemSoLuongCacNodeTrenCay_DeQuy chay mat %lf giay", (double)(end2 - start2) / CLOCKS_PER_SEC);
+    // NODE *root = GetNode('1');
+    // int k = 7;
+    // TaoCayNhiPhanDayDu(root, k);
+    // clock_t start2 = clock();
+    // for (int i = 0; i < 1000000000; i++)
+    // {
+    //     DemSoLuongCacNodeTrenCay_DeQuy(Root);
+    // }
+    // clock_t end2 = clock();
+    // printf("\nDemSoLuongCacNodeTrenCay_DeQuy chay mat %lf giay", (double)(end2 - start2) / CLOCKS_PER_SEC);
 
-    clock_t start1 = clock();
-    int dem = 0;
-    for (int i = 0; i < 1000000000; i++)
-    {
-        DemSoLuongCacNodeTrenCay_DeQuyDuoi(Root, dem);
-    }
-    clock_t end1 = clock();
-    printf("\nDemSoLuongCacNodeTrenCay_DeQuyDuoi chay mat %lf giay", (double)(end1 - start1) / CLOCKS_PER_SEC);
+    // clock_t start1 = clock();
+    // int dem = 0;
+    // for (int i = 0; i < 1000000000; i++)
+    // {
+    //     DemSoLuongCacNodeTrenCay_DeQuyDuoi(Root, dem);
+    // }
+    // clock_t end1 = clock();
+    // printf("\nDemSoLuongCacNodeTrenCay_DeQuyDuoi chay mat %lf giay", (double)(end1 - start1) / CLOCKS_PER_SEC);
 
-    clock_t start3 = clock();
-    for (int i = 0; i < 1000000000; i++)
-    {
-        DemSoLuongCacNodeTrenCay_HuyDeQuy(Root);
-    }
-    clock_t end3 = clock();
-    printf("\nDemSoLuongCacNodeTrenCay_HuyDeQuy chay mat %lf giay", (double)(end3 - start3) / CLOCKS_PER_SEC);
+    // clock_t start3 = clock();
+    // for (int i = 0; i < 1000000000; i++)
+    // {
+    //     DemSoLuongCacNodeTrenCay_HuyDeQuy(Root);
+    // }
+    // clock_t end3 = clock();
+    // printf("\nDemSoLuongCacNodeTrenCay_HuyDeQuy chay mat %lf giay", (double)(end3 - start3) / CLOCKS_PER_SEC);
 
+    RemoveAll(Root);
     return 0;
 }

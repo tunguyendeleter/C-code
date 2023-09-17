@@ -11,6 +11,7 @@ Bước 6: giải phong cây
 #include <conio.h>
 #include <stdlib.h>
 #include <queue>
+#include <stack>
 #include <time.h>
 #include <math.h>
 #include <string.h>
@@ -393,7 +394,6 @@ void XuatTatCaCacNodeTangThuK_HuyDeQuy_SuDungQueue(NODE *root, int k, int &dem)
         chieucao_q.pop();
         if (docao == k)
         {
-            printf("%c ", temp->Data);
             dem++;
         }
 
@@ -515,6 +515,208 @@ void TaoCayNhiPhanDayDu(NODE *&root, int k)
         q.push(temp->Right);
     }
 }
+/*
+kiểm tra xem cây có phải cây đầy đủ hay không
+*/
+bool KiemTraCayDayDu(NODE *root)
+{
+    int sobac = 0;
+    TinhChieuCao_DeQuyDuoi(root, sobac);
+    for (int i = 1; i <= sobac; i++)
+    {
+        int dem = 0;
+        XuatTatCaCacNodeTangThuK_HuyDeQuy_SuDungQueue(root, i, dem);
+        if (dem != pow(2.0, i - 1))
+        {
+            return false;
+        }
+    }
+    return true;
+}
+bool KiemTraCayDayDu_SuDungQueue(NODE *root)
+{
+    if (root == NULL)
+    {
+        return false;
+    }
+    vector<int> node_arr;
+    queue<NODE *> q;
+    queue<int> chieucao_q;
+    q.push(root);
+    chieucao_q.push(1);
+    while (!q.empty())
+    {
+        NODE *temp = q.front();
+        q.pop();
+        int chieucao = chieucao_q.front();
+        chieucao_q.pop();
+        if (node_arr.size() == chieucao)
+        {
+            node_arr[chieucao - 1]++;
+        }
+        else
+        {
+            node_arr.push_back(1);
+        }
+        if (temp->Left != NULL)
+        {
+            q.push(temp->Left);
+            chieucao_q.push(chieucao + 1);
+        }
+        if (temp->Right != NULL)
+        {
+            q.push(temp->Right);
+            chieucao_q.push(chieucao + 1);
+        }
+    }
+    int len = node_arr.size();
+    for (int i = 0; i < len; i++)
+    {
+        // printf("\n%d", node_arr[i]);
+        if (node_arr[i] != pow(2.0, i))
+        {
+            return false;
+        }
+    }
+    return true;
+}
+
+/*
+Kiểm tra cây nhị phân hoàn chỉnh: cây nhị phân hoàn chỉnh có chiều cao h
+2 điều kiện của cây hoàn chỉnh:
+    1: từ tầng 1 đến tầng h-1: cây đầy đủ
+    2: tầng h các node được sắp từ trái sang phải
+*/
+bool KiemTraCayHoanChinh_Cach1(NODE *root)
+{
+    if (root == NULL)
+    {
+        return false;
+    }
+    vector<int> node_idx;
+    vector<int> chieucao;
+    queue<int> idx;
+    queue<int> chieucao_q;
+    queue<NODE *> q;
+    q.push(root);
+    chieucao_q.push(1);
+    idx.push(1);
+    while (!q.empty())
+    {
+        NODE *temp = q.front();
+        q.pop();
+        int h = chieucao_q.front();
+        chieucao_q.pop();
+        int temp_idx = idx.front();
+        idx.pop();
+        if (chieucao.size() < h)
+        {
+            chieucao.push_back(1);
+        }
+        else
+        {
+            chieucao[h - 1]++;
+        }
+        node_idx.push_back(temp_idx);
+        if (temp->Left != NULL)
+        {
+            q.push(temp->Left);
+            chieucao_q.push(h + 1);
+            idx.push(temp_idx * 2);
+        }
+        if (temp->Right != NULL)
+        {
+            q.push(temp->Right);
+            chieucao_q.push(h + 1);
+            idx.push(temp_idx * 2 + 1);
+        }
+    }
+    for (int i = 0; i < chieucao.size(); i++)
+    {
+        if (i == chieucao.size() - 1)
+        {
+            if (chieucao[i] == pow(2.0, i))
+            {
+                return false;
+            }
+        }
+        else if (chieucao[i] != pow(2.0, i))
+        {
+            return false;
+        }
+    }
+    for (int i = 0; i < node_idx.size() - 1; i++)
+    {
+        if (node_idx[i + 1] - node_idx[i] != 1)
+        {
+            return false;
+        }
+    }
+    return true;
+}
+/*
+duyệt và tạo danh sách mảng 2 chiều chưa các node
+*/
+void DuyetCayVaTaoDanhSachMang2ChieuChuaCacNode(NODE *root, vector<vector<NODE *>> &Mang2Chieu, int level = 1)
+{
+    if (root != NULL)
+    {
+        if (Mang2Chieu.size() < level)
+        {
+            vector<NODE *> temp;
+            temp.push_back(root);
+            Mang2Chieu.push_back(temp);
+        }
+        else
+        {
+            Mang2Chieu[level - 1].push_back(root);
+        }
+
+        level++;
+        DuyetCayVaTaoDanhSachMang2ChieuChuaCacNode(root->Left, Mang2Chieu, level);
+        DuyetCayVaTaoDanhSachMang2ChieuChuaCacNode(root->Right, Mang2Chieu, level);
+    }
+}
+bool KiemTraCayHoanChinh_Cach2(NODE *root)
+{
+    vector<vector<NODE *>> Mang2Chieu;
+    DuyetCayVaTaoDanhSachMang2ChieuChuaCacNode(root, Mang2Chieu);
+    int len = Mang2Chieu.size();
+    // kiểm tra tầng 1 đến tầng áp cuối
+    for (int i = 0; i < len - 1; i++)
+    {
+        if (Mang2Chieu[i].size() != pow(2.0, i))
+        {
+            return false;
+        }
+    }
+    // kiểm tra tầng cuối
+    if (Mang2Chieu[len - 1].size() == pow(2.0, len - 1))
+    {
+        return false;
+    }
+    // thoả mãn điều kiện 1
+    for (int i = 0; i < Mang2Chieu[len - 1].size(); i++)
+    {
+        NODE *Con = Mang2Chieu[len - 1][i];
+        NODE *Cha = Mang2Chieu[len - 2][i / 2];
+        if (i % 2 == 0) // kiểm tra con trái
+        {
+            if (Cha->Left != Con)
+            {
+                return false;
+            }
+        }
+        else // con phải
+        {
+            if (Cha->Right != Con)
+            {
+                return false;
+            }
+        }
+    }
+    return true;
+}
 
 // Bước 6: giải phong cây
 void RemoveAll(NODE *&Root)
@@ -553,10 +755,10 @@ int main()
     C->Right = G;
     D->Left = H;
     D->Right = I;
-    E->Right = J;
+    // E->Right = J;
     F->Left = K;
-    G->Right = L;
-    L->Right = M;
+    // G->Right = L;
+    // L->Right = M;
 
     // TaoCay(Root);
     /*===========================*/
@@ -591,9 +793,9 @@ int main()
 
     // XuatTatCaCacNodeMoiTang(Root);
     XuatTatCaCacNodeMoiTang_SuDungQueue(Root);
-    char *str = "<";
-    printf("\nCac node voi dieu kien \"%s\": ", str);
-    XuatTatCaCacNodeTheoDieuKien(Root, str, 3);
+    // char *str = "<";
+    // printf("\nCac node voi dieu kien \"%s\": ", str);
+    // XuatTatCaCacNodeTheoDieuKien(Root, str, 3);
     // int k = 3;
     // int dem2 = 0;
     // printf("\nCac node tu tang 1 den tang %d\n", k);
@@ -603,10 +805,63 @@ int main()
     // printf("\nCac node tu tang %d xuong duoi\n", k);
     // XuatTatCaCacNodeDuoiTangK(Root, k, dem3);
     // printf("\nSo luong cac node duoi tang k: %d", dem3);
+    if (!KiemTraCayDayDu_SuDungQueue(Root))
+    {
+        printf("\nCay khong day du");
+    }
+    else
+    {
+        printf("\nCay day du");
+    }
+    if (!KiemTraCayHoanChinh_Cach2(Root))
+    {
+        printf("\nCay khong hoan chinh");
+    }
+    else
+    {
+        printf("\nCay hoan chinh");
+    }
+
     // tạo cây nhị phân đầy đủ
-    // NODE *root = GetNode('1');
-    // int k = 7;
-    // TaoCayNhiPhanDayDu(root, k);
+    NODE *root = GetNode('1');
+    int k = 4;
+    TaoCayNhiPhanDayDu(root, k);
+    XuatTatCaCacNodeMoiTang_SuDungQueue(root);
+    if (!KiemTraCayDayDu_SuDungQueue(root))
+    {
+        printf("\nCay khong day du");
+    }
+    else
+    {
+        printf("\nCay day du");
+    }
+
+    vector<vector<NODE *>> Mang2Chieu;
+    DuyetCayVaTaoDanhSachMang2ChieuChuaCacNode(Root, Mang2Chieu);
+    for (int i = 0; i < Mang2Chieu.size(); i++)
+    {
+        printf("\n");
+        for (int j = 0; j < Mang2Chieu[i].size(); j++)
+        {
+            printf("%c ", Mang2Chieu[i][j]->Data);
+        }
+    }
+
+    // clock_t start2 = clock();
+    // for (int i = 0; i < 1000000; i++)
+    // {
+    //     KiemTraCayDayDu(Root);
+    // }
+    // clock_t end2 = clock();
+    // printf("\nKiemTraCayDayDu chay mat %lf giay", (double)(end2 - start2) / CLOCKS_PER_SEC);
+    // clock_t start1 = clock();
+    // for (int i = 0; i < 1000000; i++)
+    // {
+    //     KiemTraCayDayDu_SuDungQueue(Root);
+    // }
+    // clock_t end1 = clock();
+    // printf("\nKiemTraCayDayDu_SuDungQueue chay mat %lf giay", (double)(end1 - start1) / CLOCKS_PER_SEC);
+
     // clock_t start2 = clock();
     // for (int i = 0; i < 1000000000; i++)
     // {
@@ -633,5 +888,6 @@ int main()
     // printf("\nDemSoLuongCacNodeTrenCay_HuyDeQuy chay mat %lf giay", (double)(end3 - start3) / CLOCKS_PER_SEC);
 
     RemoveAll(Root);
+    RemoveAll(root);
     return 0;
 }

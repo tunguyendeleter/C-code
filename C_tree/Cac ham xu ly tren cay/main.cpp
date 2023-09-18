@@ -717,6 +717,83 @@ bool KiemTraCayHoanChinh_Cach2(NODE *root)
     }
     return true;
 }
+// ====== SỬ DỤNG STACK ========
+// thutu = 1 (left->right), thutu = 2 (right->left)
+void NLR_SuDungStack(NODE *root, int thutu = 1)
+{
+    stack<NODE *> s;
+    s.push(root);
+    while (!s.empty())
+    {
+        NODE *temp = s.top();
+        s.pop();
+        printf("%4c", temp->Data);
+
+        if (thutu == 1)
+        {
+            if (temp->Right != NULL)
+            {
+                s.push(temp->Right);
+            }
+            if (temp->Left != NULL)
+            {
+                s.push(temp->Left);
+            }
+        }else
+        {
+            if (temp->Left != NULL)
+            {
+                s.push(temp->Left);
+            }
+            if (temp->Right != NULL)
+            {
+                s.push(temp->Right);
+            }
+            
+        }
+        
+    }
+}
+void LNR_SuDungStack(NODE *root, int thutu = 1)
+{
+    stack<NODE *> s;
+    while (root->Right != NULL)
+    {
+        root = root->Right;
+    }
+    
+    s.push(root);
+    while (!s.empty())
+    {
+        NODE *temp = s.top();
+        s.pop();
+        printf("%4c", temp->Data);
+
+        if (thutu == 1)
+        {
+            if (temp->Right != NULL)
+            {
+                s.push(temp->Right);
+            }
+            if (temp->Left != NULL)
+            {
+                s.push(temp->Left);
+            }
+        }else
+        {
+            if (temp->Left != NULL)
+            {
+                s.push(temp->Left);
+            }
+            if (temp->Right != NULL)
+            {
+                s.push(temp->Right);
+            }
+            
+        }
+        
+    }
+}
 
 // Bước 6: giải phong cây
 void RemoveAll(NODE *&Root)
@@ -846,6 +923,13 @@ int main()
             printf("%c ", Mang2Chieu[i][j]->Data);
         }
     }
+
+    printf("\nDuyet truoc: \n");
+    NLR_SuDungStack(Root);
+    // printf("\nDuyet giua: \n");
+    // InOrder(Root);
+    // printf("\nDuyet sau: \n");
+    // PostOrder(Root);
 
     // clock_t start2 = clock();
     // for (int i = 0; i < 1000000; i++)
